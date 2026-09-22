@@ -1,73 +1,136 @@
 import type { PlayerPosition } from "../types";
+import { PlayerAvatar } from "./PlayerAvatar";
 
-const PLACE_STYLES = {
+const PLACE_CONFIG = {
   1: {
     order: "md:order-2",
-    height: "md:h-[340px]",
-    ring: "ring-2 ring-[#ffd166] shadow-[0_0_45px_-5px_rgba(255,209,102,0.55)]",
-    badge: "bg-[#ffd166] text-[#1a1a1a]",
-    medal: "text-[#ffd166]",
-    scale: "md:scale-105",
+    height: "md:h-[380px]",
+    lift: "md:-translate-y-5",
+    accentVar: "var(--color-accent-gold)",
+    accentText: "text-accent-gold",
+    accentBg: "bg-accent-gold",
+    glow: "shadow-[0_0_70px_-12px_rgba(242,183,5,0.5)]",
+    ring: "ring-1 ring-accent-gold/40",
     label: "CAMPEÓN",
+    scoreSize: "text-7xl md:text-8xl",
+    avatarAccent: "gold",
+    avatarSize: "lg",
   },
   2: {
     order: "md:order-1",
-    height: "md:h-[290px]",
-    ring: "ring-1 ring-[#cbd5e1]/70 shadow-[0_0_30px_-8px_rgba(203,213,225,0.35)]",
-    badge: "bg-[#cbd5e1] text-[#1a1a1a]",
-    medal: "text-[#cbd5e1]",
-    scale: "",
+    height: "md:h-[320px]",
+    lift: "",
+    accentVar: "var(--color-accent-silver)",
+    accentText: "text-accent-silver",
+    accentBg: "bg-accent-silver",
+    glow: "shadow-[0_0_45px_-14px_rgba(196,201,212,0.35)]",
+    ring: "ring-1 ring-white/10",
     label: "SUBCAMPEÓN",
+    scoreSize: "text-6xl md:text-7xl",
+    avatarAccent: "silver",
+    avatarSize: "md",
   },
   3: {
     order: "md:order-3",
-    height: "md:h-[260px]",
-    ring: "ring-1 ring-[#e0995e]/70 shadow-[0_0_30px_-8px_rgba(224,153,94,0.35)]",
-    badge: "bg-[#e0995e] text-[#1a1a1a]",
-    medal: "text-[#e0995e]",
-    scale: "",
+    height: "md:h-[300px]",
+    lift: "",
+    accentVar: "var(--color-accent-bronze)",
+    accentText: "text-accent-bronze",
+    accentBg: "bg-accent-bronze",
+    glow: "shadow-[0_0_45px_-14px_rgba(201,119,46,0.35)]",
+    ring: "ring-1 ring-white/10",
     label: "TERCER LUGAR",
+    scoreSize: "text-6xl md:text-7xl",
+    avatarAccent: "bronze",
+    avatarSize: "md",
   },
-} as const;
+} as const satisfies Record<
+  1 | 2 | 3,
+  {
+    order: string;
+    height: string;
+    lift: string;
+    accentVar: string;
+    accentText: string;
+    accentBg: string;
+    glow: string;
+    ring: string;
+    label: string;
+    scoreSize: string;
+    avatarAccent: "gold" | "silver" | "bronze";
+    avatarSize: "lg" | "md";
+  }
+>;
 
 interface PodiumCardProps {
   player: PlayerPosition;
 }
 
 export function PodiumCard({ player }: PodiumCardProps) {
-  const style = PLACE_STYLES[player.rank_num as 1 | 2 | 3];
+  const cfg = PLACE_CONFIG[player.rank_num as 1 | 2 | 3];
 
   return (
     <div
-      className={`clip-card relative flex ${style.height} ${style.order} ${style.scale} w-full flex-col justify-between overflow-hidden border border-white/10 bg-gradient-to-b from-white/[0.06] to-transparent p-5 ${style.ring}`}
+      className={`clip-panel relative flex w-full flex-col justify-between overflow-hidden border border-white/10 bg-bg-panel p-6 ${cfg.height} ${cfg.order} ${cfg.lift} ${cfg.glow} ${cfg.ring}`}
     >
+      {/* giant watermark rank numeral */}
+      <span
+        aria-hidden
+        className="font-display pointer-events-none absolute -right-3 -top-6 select-none text-[9rem] font-black leading-none text-white/5"
+      >
+        {player.rank_num}
+      </span>
+
+      {/* diagonal telemetry stripe */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -left-10 top-0 h-full w-40 -skew-x-12"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${cfg.accentVar}22 45%, transparent 90%)`,
+        }}
+      />
+
       {player.rank_num === 1 && (
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-24 animate-glow bg-gradient-to-b from-[#ffd166]/25 to-transparent" />
+        <div
+          aria-hidden
+          className="animate-glow pointer-events-none absolute inset-x-0 top-0 h-28"
+          style={{
+            background: `linear-gradient(to bottom, ${cfg.accentVar}33, transparent)`,
+          }}
+        />
       )}
 
-      <div className="flex items-start justify-between">
+      <div className="relative z-10 flex items-start justify-between">
         <span
-          className={`font-display clip-tag ${style.badge} px-3 py-1 text-2xl font-bold leading-none`}
+          className={`clip-tag font-display ${cfg.accentBg} px-3.5 py-1.5 text-2xl font-black leading-none text-bg-base`}
         >
           #{player.rank_num}
         </span>
-        <span className={`font-display text-4xl font-bold ${style.medal}`}>
-          {player.rank_num === 1 ? "★" : player.rank_num === 2 ? "◆" : "▲"}
-        </span>
+        <PlayerAvatar
+          name={player.last_known_alias}
+          avatarUrl={player.avatar_url}
+          accent={cfg.avatarAccent}
+          size={cfg.avatarSize}
+        />
       </div>
 
       <div className="relative z-10">
-        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/40">
-          {style.label}
+        <p
+          className={`mb-1.5 text-[11px] font-bold uppercase tracking-[0.35em] ${cfg.accentText}`}
+        >
+          {cfg.label}
         </p>
-        <h2 className="font-display truncate text-3xl font-semibold uppercase leading-none text-white md:text-4xl">
+        <h2 className="font-display truncate text-3xl font-extrabold uppercase leading-[1.05] tracking-wide text-text-primary md:text-4xl">
           {player.last_known_alias}
         </h2>
-        <div className="mt-3 flex items-baseline gap-1.5">
-          <span className="font-display text-5xl font-bold text-[#ff4655] md:text-6xl">
+
+        <div className="mt-4 flex items-baseline gap-2 border-t border-white/10 pt-3">
+          <span
+            className={`font-display ${cfg.scoreSize} font-black leading-none text-text-primary`}
+          >
             {player.total_points}
           </span>
-          <span className="text-xs font-semibold uppercase tracking-widest text-white/40">
+          <span className="text-xs font-bold uppercase tracking-[0.3em] text-text-muted">
             pts
           </span>
         </div>

@@ -1,5 +1,20 @@
 @import "tailwindcss";
-@import url("https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@500;600;700&display=swap");
+
+@theme {
+  --color-bg-base: #0a0a0f;
+  --color-bg-panel: #14141c;
+  --color-bg-panel-alt: #1c1c26;
+  --color-accent-red: #e4002b;
+  --color-accent-red-2: #ff3b4e;
+  --color-accent-gold: #f2b705;
+  --color-accent-silver: #c4c9d4;
+  --color-accent-bronze: #c9772e;
+  --color-text-primary: #f5f5f7;
+  --color-text-muted: #8a8a96;
+
+  --font-display: "Titillium Web", "Rajdhani", sans-serif;
+  --font-body: "Barlow", "Inter", sans-serif;
+}
 
 :root {
   color-scheme: dark;
@@ -7,26 +22,41 @@
 
 body {
   margin: 0;
-  background-color: #0f1115;
-  font-family: "Rajdhani", "Inter", Avenir, Helvetica, Arial, sans-serif;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
 }
 
-.font-display {
-  font-family: "Teko", "Rajdhani", sans-serif;
+/* Angular panel: two opposite corners cut diagonally — the app's signature shape. */
+.clip-panel {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 26px) 0,
+    100% 26px,
+    100% 100%,
+    26px 100%,
+    0 calc(100% - 26px)
+  );
 }
 
+.clip-panel-sm {
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 0 100%);
+}
+
+/* Rank badge / pill tag with one cut corner. */
 .clip-tag {
   clip-path: polygon(10px 0, 100% 0, 100% 100%, 0 100%, 0 10px);
 }
 
-.clip-card {
-  clip-path: polygon(16px 0, 100% 0, 100% calc(100% - 16px), calc(100% - 16px) 100%, 0 100%, 0 16px);
+/* List row: shallow diagonal notch on the left edge only. */
+.clip-row {
+  clip-path: polygon(14px 0, 100% 0, 100% 100%, 0 100%, 0 14px);
 }
 
 @keyframes glow-pulse {
   0%,
   100% {
-    opacity: 0.55;
+    opacity: 0.45;
   }
   50% {
     opacity: 1;
@@ -34,5 +64,18 @@ body {
 }
 
 .animate-glow {
-  animation: glow-pulse 2.4s ease-in-out infinite;
+  animation: glow-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateX(-120%) skewX(-20deg);
+  }
+  100% {
+    transform: translateX(320%) skewX(-20deg);
+  }
+}
+
+.animate-scan {
+  animation: scan-sweep 1.6s linear infinite;
 }

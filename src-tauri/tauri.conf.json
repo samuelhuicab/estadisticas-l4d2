@@ -13,8 +13,12 @@
     "windows": [
       {
         "title": "estadisticas-l4d2",
-        "width": 800,
-        "height": 600
+        "width": 1280,
+        "height": 760,
+        "minWidth": 1024,
+        "minHeight": 640,
+        "center": true,
+        "decorations": false
       }
     ],
     "security": {
