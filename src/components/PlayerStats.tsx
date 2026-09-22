@@ -151,11 +151,7 @@ export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
 
         {status === "ready" &&
           (statEntries.length > 0 ? (
-            <section className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {statEntries.map(([key, value]) => (
-                <StatTile key={key} label={humanizeKey(key)} value={formatValue(value)} />
-              ))}
-            </section>
+            <StatsBreakdown entries={statEntries} />
           ) : (
             <p className="text-center text-sm font-bold uppercase tracking-widest text-text-muted">
               No hay estadísticas adicionales disponibles.
@@ -166,16 +162,73 @@ export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
   );
 }
 
-function StatTile({ label, value }: { label: string; value: string }) {
+function StatsBreakdown({ entries }: { entries: [string, PlayerStatsData[string]][] }) {
+  const HERO_COUNT = Math.min(3, entries.length);
+  const heroEntries = entries.slice(0, HERO_COUNT);
+  const restEntries = entries.slice(HERO_COUNT);
+
+  const leftColumn = restEntries.filter((_, i) => i % 2 === 0);
+  const rightColumn = restEntries.filter((_, i) => i % 2 === 1);
+
   return (
-    <div className="clip-panel-sm relative overflow-hidden border border-white/10 bg-bg-panel py-5 pl-5 pr-4">
-      <span aria-hidden className="absolute left-0 top-0 h-full w-1 bg-accent-red/70" />
-      <p className="mb-2 text-[11px] font-bold uppercase leading-snug tracking-[0.2em] text-text-muted">
+    <div className="flex flex-col gap-8">
+      {heroEntries.length > 0 && (
+        <section
+          className={`grid grid-cols-1 gap-4 ${
+            heroEntries.length === 3
+              ? "sm:grid-cols-3"
+              : heroEntries.length === 2
+                ? "sm:grid-cols-2"
+                : ""
+          }`}
+        >
+          {heroEntries.map(([key, value]) => (
+            <HeroStat key={key} label={humanizeKey(key)} value={formatValue(value)} />
+          ))}
+        </section>
+      )}
+
+      {restEntries.length > 0 && (
+        <section className="clip-panel border border-white/10 bg-bg-panel px-6 py-2 sm:px-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-12">
+            <StatList entries={leftColumn} />
+            <StatList entries={rightColumn} />
+          </div>
+        </section>
+      )}
+    </div>
+  );
+}
+
+function HeroStat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="clip-panel-sm relative overflow-hidden border border-white/10 bg-bg-panel px-6 py-6">
+      <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-accent-red" />
+      <p className="mb-2 truncate text-xs font-bold uppercase leading-snug tracking-[0.25em] text-text-muted">
         {label}
       </p>
-      <p className="font-display truncate text-4xl font-black uppercase leading-none text-text-primary">
+      <p className="font-display truncate text-5xl font-black uppercase leading-none text-text-primary">
         {value}
       </p>
+    </div>
+  );
+}
+
+function StatList({ entries }: { entries: [string, PlayerStatsData[string]][] }) {
+  if (entries.length === 0) return null;
+
+  return (
+    <div className="divide-y divide-white/10">
+      {entries.map(([key, value]) => (
+        <div key={key} className="flex items-baseline justify-between gap-6 py-4">
+          <span className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted">
+            {humanizeKey(key)}
+          </span>
+          <span className="font-display shrink-0 text-2xl font-black tabular-nums text-text-primary">
+            {formatValue(value)}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
