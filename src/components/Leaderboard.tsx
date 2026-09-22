@@ -2,9 +2,14 @@ import { useCallback, useEffect, useState } from "react";
 import { fetchPositions } from "../lib/api";
 import { PodiumCard } from "./PodiumCard";
 import { RankRow } from "./RankRow";
+import { LoadingPanel, ErrorPanel } from "./StatusPanels";
 import type { PlayerPosition } from "../types";
 
-export function Leaderboard() {
+interface LeaderboardProps {
+  onSelectPlayer: (player: PlayerPosition) => void;
+}
+
+export function Leaderboard({ onSelectPlayer }: LeaderboardProps) {
   const [players, setPlayers] = useState<PlayerPosition[]>([]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
@@ -45,8 +50,7 @@ export function Leaderboard() {
         <header className="mb-10 flex flex-col items-start justify-between gap-5 border-b border-white/10 pb-6 md:flex-row md:items-end">
           <div>
             <p className="mb-1 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.5em] text-accent-red">
-              <span className="h-2 w-2 bg-accent-red" aria-hidden />
-              Left 4 Dead 2 · Versus
+              Temporada 2026
             </p>
             <h1 className="font-display text-5xl font-black uppercase italic leading-none tracking-tight md:text-7xl">
               Ranking
@@ -62,14 +66,14 @@ export function Leaderboard() {
         </header>
 
         {status === "loading" && <LoadingPanel />}
-        {status === "error" && <ErrorPanel message={errorMessage} />}
+        {status === "error" && <ErrorPanel title="No se pudo cargar el ranking" message={errorMessage} />}
 
         {status === "ready" && (
           <div className="mx-auto max-w-6xl">
             {top3.length > 0 && (
               <section className="mb-14 grid grid-cols-1 items-end gap-5 md:grid-cols-3">
                 {top3.map((player) => (
-                  <PodiumCard key={player.rank_num} player={player} />
+                  <PodiumCard key={player.rank_num} player={player} onSelect={onSelectPlayer} />
                 ))}
               </section>
             )}
@@ -77,7 +81,12 @@ export function Leaderboard() {
             {rest.length > 0 && (
               <section className="grid grid-cols-1 gap-2.5 lg:grid-cols-2">
                 {rest.map((player) => (
-                  <RankRow key={player.rank_num} player={player} maxPoints={maxPoints} />
+                  <RankRow
+                    key={player.rank_num}
+                    player={player}
+                    maxPoints={maxPoints}
+                    onSelect={onSelectPlayer}
+                  />
                 ))}
               </section>
             )}
@@ -85,29 +94,5 @@ export function Leaderboard() {
         )}
       </div>
     </main>
-  );
-}
-
-function LoadingPanel() {
-  return (
-    <div className="clip-panel relative mx-auto max-w-md overflow-hidden border border-white/10 bg-bg-panel px-10 py-12 text-center">
-      <div className="relative mx-auto mb-5 h-1.5 w-40 overflow-hidden bg-white/5">
-        <div className="animate-scan absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-accent-red to-transparent" />
-      </div>
-      <p className="font-display text-sm font-bold uppercase tracking-[0.4em] text-text-muted">
-        Cargando telemetría
-      </p>
-    </div>
-  );
-}
-
-function ErrorPanel({ message }: { message: string }) {
-  return (
-    <div className="clip-panel mx-auto max-w-xl border border-accent-red/40 bg-accent-red/10 px-8 py-7 text-center">
-      <p className="font-display mb-2 text-sm font-black uppercase tracking-[0.35em] text-accent-red">
-        ⚠ No se pudo cargar el ranking
-      </p>
-      <p className="text-sm text-text-muted">{message}</p>
-    </div>
   );
 }

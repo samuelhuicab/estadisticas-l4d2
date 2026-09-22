@@ -1,16 +1,31 @@
 import type { PlayerPosition } from "../types";
+import { formatNumber } from "../lib/format";
 import { PlayerAvatar } from "./PlayerAvatar";
 
 interface RankRowProps {
   player: PlayerPosition;
   maxPoints: number;
+  onSelect: (player: PlayerPosition) => void;
 }
 
-export function RankRow({ player, maxPoints }: RankRowProps) {
+export function RankRow({ player, maxPoints, onSelect }: RankRowProps) {
   const fillPct = maxPoints > 0 ? Math.max(4, (player.total_points / maxPoints) * 100) : 4;
+  const clickable = Boolean(player.steam_id);
 
   return (
-    <div className="clip-row group relative flex items-center gap-3 overflow-hidden border border-white/5 bg-bg-panel px-4 py-3 transition-colors hover:bg-bg-panel-alt">
+    <div
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? () => onSelect(player) : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") onSelect(player);
+            }
+          : undefined
+      }
+      className={`clip-row group relative flex items-center gap-3 overflow-hidden border border-white/5 bg-bg-panel px-4 py-3 transition-colors hover:bg-bg-panel-alt ${clickable ? "cursor-pointer" : ""}`}
+    >
       <span
         aria-hidden
         className="absolute left-0 top-0 h-full w-1 bg-accent-red/70 transition-colors group-hover:bg-accent-red"
@@ -41,7 +56,7 @@ export function RankRow({ player, maxPoints }: RankRowProps) {
 
       <div className="shrink-0 text-right">
         <span className="font-display text-2xl font-extrabold leading-none text-text-primary">
-          {player.total_points}
+          {formatNumber(player.total_points)}
         </span>
         <span className="ml-1 text-[10px] font-bold uppercase tracking-[0.25em] text-text-muted">
           pts

@@ -1,4 +1,5 @@
 import type { PlayerPosition } from "../types";
+import { formatNumber } from "../lib/format";
 import { PlayerAvatar } from "./PlayerAvatar";
 
 const PLACE_CONFIG = {
@@ -64,14 +65,26 @@ const PLACE_CONFIG = {
 
 interface PodiumCardProps {
   player: PlayerPosition;
+  onSelect: (player: PlayerPosition) => void;
 }
 
-export function PodiumCard({ player }: PodiumCardProps) {
+export function PodiumCard({ player, onSelect }: PodiumCardProps) {
   const cfg = PLACE_CONFIG[player.rank_num as 1 | 2 | 3];
+  const clickable = Boolean(player.steam_id);
 
   return (
     <div
-      className={`clip-panel relative flex w-full flex-col justify-between overflow-hidden border border-white/10 bg-bg-panel p-6 ${cfg.height} ${cfg.order} ${cfg.lift} ${cfg.glow} ${cfg.ring}`}
+      role={clickable ? "button" : undefined}
+      tabIndex={clickable ? 0 : undefined}
+      onClick={clickable ? () => onSelect(player) : undefined}
+      onKeyDown={
+        clickable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") onSelect(player);
+            }
+          : undefined
+      }
+      className={`clip-panel relative flex w-full flex-col justify-between overflow-hidden border border-white/10 bg-bg-panel p-6 ${cfg.height} ${cfg.order} ${cfg.lift} ${cfg.glow} ${cfg.ring} ${clickable ? "cursor-pointer transition-colors hover:bg-bg-panel-alt" : ""}`}
     >
       {/* giant watermark rank numeral */}
       <span
@@ -128,7 +141,7 @@ export function PodiumCard({ player }: PodiumCardProps) {
           <span
             className={`font-display ${cfg.scoreSize} font-black leading-none text-text-primary`}
           >
-            {player.total_points}
+            {formatNumber(player.total_points)}
           </span>
           <span className="text-xs font-bold uppercase tracking-[0.3em] text-text-muted">
             pts
