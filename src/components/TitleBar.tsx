@@ -40,10 +40,10 @@ export function TitleBar() {
     >
       <div
         data-tauri-drag-region
-        className="flex flex-1 items-center gap-2 pl-4 text-[11px] font-bold uppercase tracking-[0.35em] text-text-muted"
+        className="font-mono flex flex-1 items-center gap-2 pl-4 text-[11px] font-semibold uppercase tracking-[0.35em] text-text-muted"
       >
         <span className="h-2 w-2 bg-accent-red" aria-hidden />
-        <span className="font-display">L4D2 · Ranking</span>
+        <span className="font-display italic">L4D2 · Ranking</span>
       </div>
 
       <div className="flex items-stretch">

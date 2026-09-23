@@ -63,7 +63,7 @@ export function UpdateBanner() {
   }
 
   return (
-    <div className="flex shrink-0 items-center justify-center gap-4 border-b border-accent-gold/30 bg-accent-gold/10 px-4 py-2 text-xs font-bold uppercase tracking-[0.25em] text-accent-gold">
+    <div className="font-mono flex shrink-0 items-center justify-center gap-4 border-b border-accent-gold/30 bg-accent-gold/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-accent-gold">
       {state.phase === "available" && (
         <>
           <span>Actualización {state.update.version} disponible</span>

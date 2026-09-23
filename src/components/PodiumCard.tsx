@@ -10,9 +10,9 @@ const PLACE_CONFIG = {
     accentVar: "var(--color-accent-gold)",
     accentText: "text-accent-gold",
     accentBg: "bg-accent-gold",
-    glow: "shadow-[0_0_70px_-12px_rgba(242,183,5,0.5)]",
+    glow: "shadow-[0_0_70px_-12px_rgba(232,185,73,0.5)]",
     ring: "ring-1 ring-accent-gold/40",
-    label: "CAMPEÓN",
+    label: "LÍDER DEL CAMPEONATO",
     scoreSize: "text-7xl md:text-8xl",
     avatarAccent: "gold",
     avatarSize: "lg",
@@ -38,7 +38,7 @@ const PLACE_CONFIG = {
     accentVar: "var(--color-accent-bronze)",
     accentText: "text-accent-bronze",
     accentBg: "bg-accent-bronze",
-    glow: "shadow-[0_0_45px_-14px_rgba(201,119,46,0.35)]",
+    glow: "shadow-[0_0_45px_-14px_rgba(242,90,42,0.35)]",
     ring: "ring-1 ring-white/10",
     label: "TERCER LUGAR",
     scoreSize: "text-6xl md:text-7xl",
@@ -65,12 +65,15 @@ const PLACE_CONFIG = {
 
 interface PodiumCardProps {
   player: PlayerPosition;
+  leaderPoints: number;
   onSelect: (player: PlayerPosition) => void;
 }
 
-export function PodiumCard({ player, onSelect }: PodiumCardProps) {
+export function PodiumCard({ player, leaderPoints, onSelect }: PodiumCardProps) {
   const cfg = PLACE_CONFIG[player.rank_num as 1 | 2 | 3];
   const clickable = Boolean(player.steam_id);
+  const gap = player.total_points - leaderPoints;
+  const pct = leaderPoints > 0 ? Math.max(4, (player.total_points / leaderPoints) * 100) : 100;
 
   return (
     <div
@@ -89,19 +92,10 @@ export function PodiumCard({ player, onSelect }: PodiumCardProps) {
       {/* giant watermark rank numeral */}
       <span
         aria-hidden
-        className="font-display pointer-events-none absolute -right-3 -top-6 select-none text-[9rem] font-black leading-none text-white/5"
+        className="font-display pointer-events-none absolute -right-3 -top-6 select-none text-[9rem] font-bold leading-none text-white/5"
       >
         {player.rank_num}
       </span>
-
-      {/* diagonal telemetry stripe */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -left-10 top-0 h-full w-40 -skew-x-12"
-        style={{
-          background: `linear-gradient(90deg, transparent, ${cfg.accentVar}22 45%, transparent 90%)`,
-        }}
-      />
 
       {player.rank_num === 1 && (
         <div
@@ -115,9 +109,9 @@ export function PodiumCard({ player, onSelect }: PodiumCardProps) {
 
       <div className="relative z-10 flex items-start justify-between">
         <span
-          className={`clip-tag font-display ${cfg.accentBg} px-3.5 py-1.5 text-2xl font-black leading-none text-bg-base`}
+          className={`clip-tag font-display ${cfg.accentBg} px-3.5 py-1.5 text-2xl font-bold leading-none text-bg-base`}
         >
-          #{player.rank_num}
+          P{player.rank_num}
         </span>
         <PlayerAvatar
           name={player.last_known_alias}
@@ -129,24 +123,33 @@ export function PodiumCard({ player, onSelect }: PodiumCardProps) {
 
       <div className="relative z-10">
         <p
-          className={`mb-1.5 text-[11px] font-bold uppercase tracking-[0.35em] ${cfg.accentText}`}
+          className={`font-mono mb-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] ${cfg.accentText}`}
         >
           {cfg.label}
         </p>
-        <h2 className="font-display truncate text-3xl font-extrabold uppercase leading-[1.05] tracking-wide text-text-primary md:text-4xl">
+        <h2 className="font-display truncate text-3xl font-extrabold italic uppercase leading-[1.05] tracking-tight text-text-primary md:text-4xl">
           {player.last_known_alias}
         </h2>
 
         <div className="mt-4 flex items-baseline gap-2 border-t border-white/10 pt-3">
           <span
-            className={`font-display ${cfg.scoreSize} font-black leading-none text-text-primary`}
+            className={`font-display ${cfg.scoreSize} font-bold leading-none text-text-primary`}
           >
             {formatNumber(player.total_points)}
           </span>
-          <span className="text-xs font-bold uppercase tracking-[0.3em] text-text-muted">
+          <span className="font-mono text-xs font-semibold uppercase tracking-[0.25em] text-text-muted">
             pts
           </span>
+          <span className={`font-mono ml-auto text-sm font-semibold ${cfg.accentText}`}>
+            {gap === 0 ? "LEADER" : formatNumber(gap)}
+          </span>
         </div>
+
+        {gap !== 0 && (
+          <div className="mt-2 h-[3px] w-full bg-white/10">
+            <div className={`h-full ${cfg.accentBg}`} style={{ width: `${pct}%` }} />
+          </div>
+        )}
       </div>
     </div>
   );

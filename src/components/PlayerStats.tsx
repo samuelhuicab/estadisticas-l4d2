@@ -50,10 +50,11 @@ function formatValue(value: PlayerStatsData[string]): string {
 
 interface PlayerStatsScreenProps {
   player: PlayerPosition;
+  allPlayers: PlayerPosition[];
   onBack: () => void;
 }
 
-export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
+export function PlayerStatsScreen({ player, allPlayers, onBack }: PlayerStatsScreenProps) {
   const [stats, setStats] = useState<PlayerStatsData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [errorMessage, setErrorMessage] = useState("");
@@ -92,11 +93,16 @@ export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
       )
     : [];
 
+  const leaderPoints = allPlayers[0]?.total_points ?? player.total_points;
+  const pctOfLeader = leaderPoints > 0 ? Math.round((player.total_points / leaderPoints) * 100) : 100;
+  const ahead = allPlayers.find((p) => p.rank_num === player.rank_num - 1);
+  const behind = allPlayers.find((p) => p.rank_num === player.rank_num + 1);
+
   return (
     <main className="relative min-h-full overflow-hidden bg-bg-base px-8 py-8 text-text-primary md:px-14 md:py-10">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_-10%,rgba(228,0,43,0.14),transparent_45%)]"
+        className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_15%_-10%,rgba(242,90,42,0.14),transparent_45%)]"
       />
       <div
         aria-hidden
@@ -106,42 +112,68 @@ export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
       <div className="relative z-10 mx-auto max-w-5xl">
         <button
           onClick={onBack}
-          className="clip-tag mb-8 inline-flex items-center gap-2 border border-white/15 bg-white/5 px-5 py-2 text-xs font-bold uppercase tracking-[0.3em] text-text-muted transition-colors hover:bg-white/10 hover:text-text-primary"
+          className="font-mono clip-tag mb-8 inline-flex items-center gap-2 border border-white/15 bg-white/5 px-5 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-text-muted transition-colors hover:bg-white/10 hover:text-text-primary"
         >
           ← Volver al ranking
         </button>
 
-        <section className="clip-panel relative mb-10 flex flex-col gap-6 overflow-hidden border border-white/10 bg-bg-panel p-8 sm:flex-row sm:items-center">
-          <span
-            aria-hidden
-            className="font-display pointer-events-none absolute -right-4 -top-10 select-none text-[11rem] font-black leading-none text-white/5"
-          >
-            {player.rank_num}
-          </span>
+        <section className="relative mb-8 flex flex-col gap-6 overflow-hidden sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0">
+            <p className="font-mono mb-1 text-xs font-semibold uppercase tracking-[0.35em] text-accent-red">
+              Perfil del jugador
+            </p>
+            <h2
+              className={`font-display text-6xl font-bold leading-none md:text-8xl ${
+                player.rank_num === 1
+                  ? "text-accent-gold"
+                  : player.rank_num === 2
+                    ? "text-accent-silver"
+                    : player.rank_num === 3
+                      ? "text-accent-bronze"
+                      : "text-white/20"
+              }`}
+            >
+              {String(player.rank_num).padStart(2, "0")}
+            </h2>
+            <h1 className="font-display truncate text-4xl font-extrabold italic uppercase leading-none tracking-tight text-text-primary md:text-5xl">
+              {player.last_known_alias}
+            </h1>
+            <p className="font-mono mt-2 text-xs text-text-muted">
+              STEAM · {player.steam_id ?? "sin steam id"}
+            </p>
+          </div>
 
           <PlayerAvatar
             name={player.last_known_alias}
             avatarUrl={player.avatar_url}
             accent={accentForRank(player.rank_num)}
             size="lg"
+            shape="square"
           />
+        </section>
 
-          <div className="relative z-10 min-w-0">
-            <p className="mb-1 truncate text-[11px] font-bold uppercase tracking-[0.35em] text-accent-red">
-              #{player.rank_num} · {player.steam_id ?? "sin steam id"}
-            </p>
-            <h1 className="font-display truncate text-4xl font-black uppercase italic leading-none tracking-tight md:text-5xl">
-              {player.last_known_alias}
-            </h1>
-            <div className="mt-4 flex items-baseline gap-2">
-              <span className="font-display text-5xl font-black leading-none text-text-primary">
-                {formatNumber(player.total_points)}
-              </span>
-              <span className="text-xs font-bold uppercase tracking-[0.3em] text-text-muted">
-                pts totales
-              </span>
-            </div>
-          </div>
+        <section className="mb-10 grid grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/10 sm:grid-cols-4">
+          <KpiTile
+            label="Posición"
+            value={`P${player.rank_num}`}
+            hint={`de ${allPlayers.length || 1} jugadores`}
+            accent="text-accent-gold"
+          />
+          <KpiTile
+            label="Puntos"
+            value={formatNumber(player.total_points)}
+            hint={`${pctOfLeader}% del líder`}
+          />
+          <KpiTile
+            label="Intervalo · Adelante"
+            value={ahead ? `+${formatNumber(ahead.total_points - player.total_points)}` : "—"}
+            hint={ahead ? `P${ahead.rank_num} ${ahead.last_known_alias}` : "Lidera el campeonato"}
+          />
+          <KpiTile
+            label="Intervalo · Atrás"
+            value={behind ? `+${formatNumber(player.total_points - behind.total_points)}` : "—"}
+            hint={behind ? `P${behind.rank_num} ${behind.last_known_alias}` : "Último lugar"}
+          />
         </section>
 
         {status === "loading" && <LoadingPanel label="Cargando estadísticas" />}
@@ -153,12 +185,34 @@ export function PlayerStatsScreen({ player, onBack }: PlayerStatsScreenProps) {
           (statEntries.length > 0 ? (
             <StatsBreakdown entries={statEntries} />
           ) : (
-            <p className="text-center text-sm font-bold uppercase tracking-widest text-text-muted">
+            <p className="font-mono text-center text-sm font-semibold uppercase tracking-widest text-text-muted">
               No hay estadísticas adicionales disponibles.
             </p>
           ))}
       </div>
     </main>
+  );
+}
+
+function KpiTile({
+  label,
+  value,
+  hint,
+  accent = "text-text-primary",
+}: {
+  label: string;
+  value: string;
+  hint: string;
+  accent?: string;
+}) {
+  return (
+    <div className="bg-bg-panel px-5 py-5">
+      <p className="font-mono mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-text-muted">
+        {label}
+      </p>
+      <p className={`font-display text-3xl font-bold leading-none ${accent}`}>{value}</p>
+      <p className="mt-1.5 truncate text-xs text-text-muted">{hint}</p>
+    </div>
   );
 }
 
@@ -171,26 +225,34 @@ function StatsBreakdown({ entries }: { entries: [string, PlayerStatsData[string]
   const rightColumn = restEntries.filter((_, i) => i % 2 === 1);
 
   return (
-    <div className="flex flex-col gap-8">
+    <div className="flex flex-col gap-10">
       {heroEntries.length > 0 && (
-        <section
-          className={`grid grid-cols-1 gap-4 ${
-            heroEntries.length === 3
-              ? "sm:grid-cols-3"
-              : heroEntries.length === 2
-                ? "sm:grid-cols-2"
-                : ""
-          }`}
-        >
-          {heroEntries.map(([key, value]) => (
-            <HeroStat key={key} label={humanizeKey(key)} value={formatValue(value)} />
-          ))}
+        <section>
+          <h2 className="font-display mb-4 text-3xl font-extrabold italic uppercase leading-none text-text-primary">
+            Resumen
+          </h2>
+          <div
+            className={`grid grid-cols-1 gap-x-8 ${
+              heroEntries.length === 3
+                ? "sm:grid-cols-3"
+                : heroEntries.length === 2
+                  ? "sm:grid-cols-2"
+                  : ""
+            }`}
+          >
+            {heroEntries.map(([key, value], i) => (
+              <HeroStat key={key} label={humanizeKey(key)} value={formatValue(value)} accented={i === 0} />
+            ))}
+          </div>
         </section>
       )}
 
       {restEntries.length > 0 && (
-        <section className="clip-panel border border-white/10 bg-bg-panel px-6 py-2 sm:px-10">
-          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-12">
+        <section>
+          <h2 className="font-display mb-2 text-3xl font-extrabold italic uppercase leading-none text-text-primary">
+            Telemetría
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-x-14">
             <StatList entries={leftColumn} />
             <StatList entries={rightColumn} />
           </div>
@@ -200,16 +262,15 @@ function StatsBreakdown({ entries }: { entries: [string, PlayerStatsData[string]
   );
 }
 
-function HeroStat({ label, value }: { label: string; value: string }) {
+function HeroStat({ label, value, accented }: { label: string; value: string; accented: boolean }) {
   return (
-    <div className="clip-panel-sm relative overflow-hidden border border-white/10 bg-bg-panel px-6 py-6">
-      <span aria-hidden className="absolute inset-x-0 top-0 h-[3px] bg-accent-red" />
-      <p className="mb-2 truncate text-xs font-bold uppercase leading-snug tracking-[0.25em] text-text-muted">
-        {label}
-      </p>
-      <p className="font-display truncate text-5xl font-black uppercase leading-none text-text-primary">
+    <div className={`flex flex-col gap-2.5 border-t-[3px] py-5 ${accented ? "border-accent-red" : "border-white/15"}`}>
+      <span className="font-display truncate text-6xl font-bold leading-none tabular-nums text-text-primary">
         {value}
-      </p>
+      </span>
+      <span className="font-mono truncate text-[11px] font-semibold uppercase tracking-[0.24em] text-text-muted">
+        {label}
+      </span>
     </div>
   );
 }
@@ -218,13 +279,13 @@ function StatList({ entries }: { entries: [string, PlayerStatsData[string]][] })
   if (entries.length === 0) return null;
 
   return (
-    <div className="divide-y divide-white/10">
+    <div>
       {entries.map(([key, value]) => (
-        <div key={key} className="flex items-baseline justify-between gap-6 py-4">
-          <span className="text-xs font-bold uppercase tracking-[0.2em] text-text-muted">
+        <div key={key} className="flex items-baseline justify-between gap-6 border-b border-white/5 py-4">
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.18em] text-text-muted">
             {humanizeKey(key)}
           </span>
-          <span className="font-display shrink-0 text-2xl font-black tabular-nums text-text-primary">
+          <span className="font-display shrink-0 text-2xl font-bold tabular-nums text-text-primary">
             {formatValue(value)}
           </span>
         </div>
