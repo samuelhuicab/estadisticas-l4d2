@@ -51,7 +51,7 @@ export function Leaderboard({ onSelectPlayer }: LeaderboardProps) {
         <header className="mb-10 flex flex-col items-start justify-between gap-5 border-b border-white/10 pb-6 md:flex-row md:items-end">
           <div>
             <p className="font-mono mb-1 flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.4em] text-accent-red">
-              Temporada 2026 · Jugadores' Championship
+              Temporada 2026 · Jugadores
             </p>
             <h1 className="font-display text-5xl font-extrabold uppercase italic leading-none tracking-tight md:text-7xl">
               Ranking

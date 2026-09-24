@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { fetchPlayerStats } from "../lib/api";
 import { formatNumber } from "../lib/format";
+import { humanizeKey, formatValue } from "../lib/adaptive";
 import { PlayerAvatar } from "./PlayerAvatar";
 import { LoadingPanel, ErrorPanel } from "./StatusPanels";
 import type { PlayerPosition, PlayerStats as PlayerStatsData } from "../types";
@@ -26,26 +27,9 @@ function accentForRank(rank: number): "gold" | "silver" | "bronze" | "neutral" {
   return "neutral";
 }
 
-function humanizeKey(key: string): string {
-  return key.replace(/_/g, " ").replace(/danio/gi, "daño");
-}
-
 function isDuplicateName(value: PlayerStatsData[string], alias: string): boolean {
   if (typeof value !== "string") return false;
   return value.trim().toLowerCase() === alias.trim().toLowerCase();
-}
-
-function formatValue(value: PlayerStatsData[string]): string {
-  if (value === null || value === undefined || value === "") return "—";
-  if (typeof value === "boolean") return value ? "Sí" : "No";
-  if (typeof value === "number") return formatNumber(value);
-
-  // The API sometimes sends numeric stats as strings (e.g. "4821") — format those too.
-  if (typeof value === "string" && value.trim() !== "" && !Number.isNaN(Number(value))) {
-    return formatNumber(Number(value));
-  }
-
-  return String(value);
 }
 
 interface PlayerStatsScreenProps {
